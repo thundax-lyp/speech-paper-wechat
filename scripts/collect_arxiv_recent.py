@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Collect one date block from arXiv cs.SD/eess.AS recent pages.
+"""Collect one date block from arXiv cs.AI/cs.CL/cs.MA recent pages.
 
 This script intentionally keeps dependencies to the Python standard library.
-It writes the same cache layout used by the speech-paper-wechat workflow:
+It writes the same cache layout used by the Agent/LLM Paper WeChat workflow:
 
   all_entries_today.json
   metadata_today.json
@@ -25,10 +25,29 @@ from dataclasses import dataclass, asdict
 from pathlib import Path
 
 
-RECENT_URLS = {
-    "cs.SD": "https://arxiv.org/list/cs.SD/recent",
-    "eess.AS": "https://arxiv.org/list/eess.AS/recent",
-}
+DEFAULT_CATEGORIES = ["cs.AI", "cs.CL", "cs.MA"]
+
+
+def recent_url(category: str) -> str:
+    return f"https://arxiv.org/list/{category}/recent?skip=0&show=2000"
+
+
+AGENT_LLM_ANCHOR_KEYWORDS = [
+    "agent", "agents", "agentic", "multi-agent", "multiagent",
+    "large language model", "large language models", "llm", "llms",
+    "language model", "foundation model", "chatbot", "assistant",
+    "generative ai", "deep research", "web automation", "gui automation",
+    "tool use", "tool-use", "function calling", "planning", "planner",
+    "chain-of-thought", "cot", "self-reflection",
+    "retrieval augmented", "retrieval-augmented", "rag", "memory",
+    "prompt", "prompting", "instruction tuning",
+]
+
+AGENT_LLM_CONTEXT_KEYWORDS = [
+    "reasoning", "planning", "planner", "alignment", "preference optimization",
+    "rlhf", "dpo", "benchmark", "evaluation", "hallucination", "safety",
+    "guardrail", "workflow", "orchestration", "tool", "retrieval",
+]
 
 
 @dataclass
@@ -60,7 +79,7 @@ def strip_tags(value: str) -> str:
 
 def extract_div(block: str, class_name: str) -> str:
     match = re.search(
-        rf'<div class="{re.escape(class_name)}"[^>]*>(.*?)</div>',
+        rf"<div[^>]*class=['\"][^'\"]*\b{re.escape(class_name)}\b[^'\"]*['\"][^>]*>(.*?)</div>",
         block,
         flags=re.S,
     )
@@ -123,6 +142,21 @@ def unique_entries(entries: list[ArxivEntry]) -> list[dict]:
     return list(by_id.values())
 
 
+def matches_agent_llm(item: dict) -> tuple[bool, list[str]]:
+    haystack = " ".join(
+        str(item.get(key, "") or "")
+        for key in ("title", "abstract", "subjects", "comments")
+    ).lower()
+    anchors = [kw for kw in AGENT_LLM_ANCHOR_KEYWORDS if kw in haystack]
+    contexts = [kw for kw in AGENT_LLM_CONTEXT_KEYWORDS if kw in haystack]
+    if anchors:
+        return True, (anchors + contexts)[:8]
+    # Keep a small number of clearly LLM-coded alignment/safety acronyms even
+    # when the title omits "LLM".
+    strong_contexts = [kw for kw in contexts if kw in {"rlhf", "dpo", "preference optimization", "hallucination", "guardrail"}]
+    return bool(strong_contexts), (strong_contexts + contexts)[:8]
+
+
 def download(url: str, output: Path, timeout: int) -> None:
     output.parent.mkdir(parents=True, exist_ok=True)
     req = urllib.request.Request(url, headers={"User-Agent": "speech-paper-wechat/1.0"})
@@ -144,6 +178,18 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--date-heading", required=True, help='arXiv heading, e.g. "Wed, 20 May 2026"')
     parser.add_argument("--output", required=True, type=Path, help="Run cache directory")
+    parser.add_argument(
+        "--categories",
+        nargs="+",
+        default=DEFAULT_CATEGORIES,
+        help="arXiv categories to collect, e.g. cs.AI cs.CL cs.MA",
+    )
+    parser.add_argument(
+        "--filter-profile",
+        choices=["agent-llm", "none"],
+        default="agent-llm",
+        help="Filter collected metadata before downloading PDFs",
+    )
     parser.add_argument("--download-pdf", action="store_true", help="Download unique PDFs")
     parser.add_argument("--extract-text", action="store_true", help="Run pdftotext after PDF download")
     parser.add_argument("--timeout", type=int, default=60)
@@ -151,19 +197,57 @@ def main() -> int:
 
     args.output.mkdir(parents=True, exist_ok=True)
     all_entries: list[ArxivEntry] = []
-    for source, url in RECENT_URLS.items():
-        page = fetch_text(url, args.timeout)
+    for source in args.categories:
+        page = fetch_text(recent_url(source), args.timeout)
         (args.output / f"{source}.recent.html").write_text(page, encoding="utf-8")
         all_entries.extend(parse_entries(source, page, args.date_heading))
 
     raw_json = [asdict(entry) for entry in all_entries]
-    metadata = unique_entries(all_entries)
+    unfiltered_metadata = unique_entries(all_entries)
+    metadata = unfiltered_metadata
+    filter_report = {
+        "profile": args.filter_profile,
+        "input_count": len(unfiltered_metadata),
+        "kept_count": len(unfiltered_metadata),
+        "dropped_count": 0,
+        "kept": [],
+        "dropped": [],
+    }
+    if args.filter_profile == "agent-llm":
+        kept = []
+        dropped = []
+        for item in unfiltered_metadata:
+            ok, matched = matches_agent_llm(item)
+            row = {
+                "id": item.get("id"),
+                "title": item.get("title"),
+                "sources": item.get("sources", []),
+                "matched_keywords": matched,
+            }
+            if ok:
+                kept.append(item)
+                filter_report["kept"].append(row)
+            else:
+                dropped.append(item)
+                filter_report["dropped"].append(row)
+        metadata = kept
+        filter_report["kept_count"] = len(kept)
+        filter_report["dropped_count"] = len(dropped)
+
     (args.output / "all_entries_today.json").write_text(
         json.dumps(raw_json, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
+    (args.output / "metadata_unfiltered.json").write_text(
+        json.dumps(unfiltered_metadata, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
     (args.output / "metadata_today.json").write_text(
         json.dumps(metadata, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    (args.output / "filter_report.json").write_text(
+        json.dumps(filter_report, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
 
@@ -180,11 +264,14 @@ def main() -> int:
                     args.output / "fulltext" / f"{arxiv_id}.txt",
                 )
 
-    duplicate_count = len(raw_json) - len(metadata)
+    duplicate_count = len(raw_json) - len(unfiltered_metadata)
     print(json.dumps({
         "raw_entries": len(raw_json),
         "unique_entries": len(metadata),
+        "unique_entries_before_filter": len(unfiltered_metadata),
         "duplicates": duplicate_count,
+        "filter_profile": args.filter_profile,
+        "dropped_by_filter": filter_report["dropped_count"],
         "output": str(args.output),
     }, ensure_ascii=False, indent=2))
     return 0
