@@ -34,14 +34,14 @@ def main() -> int:
     kept = [item for item in load_items(args.input) if item.get("kept", True)]
     top = sorted(kept, key=score, reverse=True)[:3]
     themes = "；".join(
-        f"{item.get('title', 'Untitled')}（{item.get('direction', '其他相关音频')}）"
+        f"{item.get('title', 'Untitled')}（{item.get('direction', '其他 Agent / LLM')}）"
         for item in top
     )
-    prompt = f"""为微信公众号文章《语音论文速递》生成一张内容感知封面图。
-要求：像素风格微信公众号封面图，宽幅横版构图，适合文章头图，复古 8-bit / 16-bit 像素艺术风格。
-画面简洁但有细节，主体突出，围绕当天重点论文主题进行场景化设计，具有故事感和视觉焦点。
-背景有层次，色彩鲜明但不过于杂乱，不要预留标题区，不要留白，画面尽量铺满，但仍然保持主体清晰。
-整体干净、吸睛、适合社交媒体传播，现代像素插画质感。
+    prompt = f"""为微信公众号文章《Agent/LLM论文速递》生成一张内容感知封面图。
+要求：宽幅横版构图，适合文章头图，现代科技编辑插画风格，干净、锐利、有研究感和产品感。
+画面主体围绕 Agent / LLM 论文主题进行场景化设计：智能体网络、工具调用、规划路径、记忆检索、多智能体协作、评测仪表盘等元素可以抽象出现。
+背景有层次，色彩克制但有亮点，不要预留标题区，不要留白，画面尽量铺满，但仍然保持主体清晰。
+整体像高质量 AI research newsletter 封面，不要做成廉价赛博朋克或杂乱拼贴。
 结合当天重点论文主题：{themes}。
 把这些论文主题转化为抽象但可感知的视觉元素，不要做成拼贴海报，不要堆太多元素。
 不要真实人物，不要任何文字，不要汉字，不要英文字母，不要数字，不要 Logo，不要水印。
