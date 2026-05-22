@@ -1,0 +1,19 @@
+{
+  "date": "2026-05-22",
+  "articles": [
+    {
+      "title": "Agent/LLM论文速递｜2026-05-22｜精选版",
+      "path": "/Volumes/storage/workspace/speech-paper-wechat/runs/papers_20260522/wechat-post.md",
+      "kind": "featured",
+      "count": 4
+    },
+    {
+      "title": "Agent/LLM论文速递｜2026-05-22｜全量版",
+      "path": "/Volumes/storage/workspace/speech-paper-wechat/runs/papers_20260522/wechat-post-all.md",
+      "kind": "full",
+      "count": 36
+    }
+  ],
+  "featured_count": 4,
+  "full_count": 36
+}
