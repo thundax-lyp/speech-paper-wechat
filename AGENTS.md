@@ -55,7 +55,19 @@ There is no formal test suite yet. Before changes, run `py_compile` for Python a
 
 ## Commit & Pull Request Guidelines
 
-History is minimal, so use concise imperative commits such as `Add Codex cover helper` or `Update workflow paths`. PRs should explain the workflow impact, list commands run, mention generated files, and call out any publishing or credential-sensitive behavior.
+Use the same commit message format as the sibling `bacon` repository:
+`Type(scope): 中文说明`.
+
+Common types:
+
+- `Docs(scope): ...` for documentation, workflow notes, generated article drafts, and README updates
+- `Build(scope): ...` for dependency, lockfile, packaging, or toolchain changes
+- `Chore(scope): ...` for repository maintenance, ignore rules, and local housekeeping
+- `Test(scope): ...` for tests and validation gates
+- `Fix(scope): ...` for bug fixes
+- `Feat(scope): ...` for user-visible workflow or script capabilities
+
+Keep scopes short and lowercase, for example `readme`, `workflow`, `wechat`, `gitignore`, `agents`, or `publisher`. Example: `Docs(workflow): 明确每日日期处理`. PRs should explain the workflow impact, list commands run, mention generated files, and call out any publishing or credential-sensitive behavior.
 
 ## Security & Configuration Tips
 
