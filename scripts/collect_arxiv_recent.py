@@ -17,9 +17,13 @@ from __future__ import annotations
 
 import argparse
 import html
+import http.client
 import json
 import re
+import shutil
 import subprocess
+import time
+import urllib.error
 import urllib.request
 from dataclasses import dataclass, asdict
 from pathlib import Path
@@ -67,7 +71,11 @@ class ArxivEntry:
 def fetch_text(url: str, timeout: int) -> str:
     req = urllib.request.Request(url, headers={"User-Agent": "speech-paper-wechat/1.0"})
     with urllib.request.urlopen(req, timeout=timeout) as resp:
-        return resp.read().decode("utf-8", errors="replace")
+        try:
+            data = resp.read()
+        except http.client.IncompleteRead as exc:
+            data = exc.partial
+        return data.decode("utf-8", errors="replace")
 
 
 def strip_tags(value: str) -> str:
@@ -157,11 +165,54 @@ def matches_agent_llm(item: dict) -> tuple[bool, list[str]]:
     return bool(strong_contexts), (strong_contexts + contexts)[:8]
 
 
-def download(url: str, output: Path, timeout: int) -> None:
+def download(url: str, output: Path, timeout: int, retries: int = 3) -> None:
     output.parent.mkdir(parents=True, exist_ok=True)
-    req = urllib.request.Request(url, headers={"User-Agent": "speech-paper-wechat/1.0"})
-    with urllib.request.urlopen(req, timeout=timeout) as resp:
-        output.write_bytes(resp.read())
+    tmp_path = output.with_suffix(output.suffix + ".tmp")
+    if shutil.which("curl"):
+        result = subprocess.run(
+            [
+                "curl",
+                "-L",
+                "--fail",
+                "--retry",
+                str(retries),
+                "--retry-delay",
+                "2",
+                "--max-time",
+                str(timeout),
+                "-A",
+                "speech-paper-wechat/1.0",
+                "-o",
+                str(tmp_path),
+                url,
+            ],
+            check=False,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        if result.returncode == 0 and tmp_path.exists() and tmp_path.stat().st_size > 0:
+            tmp_path.replace(output)
+            return
+        if tmp_path.exists():
+            tmp_path.unlink()
+
+    last_error: Exception | None = None
+    for attempt in range(1, retries + 1):
+        req = urllib.request.Request(url, headers={"User-Agent": "speech-paper-wechat/1.0"})
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                data = resp.read()
+            tmp_path.write_bytes(data)
+            tmp_path.replace(output)
+            return
+        except (http.client.IncompleteRead, TimeoutError, urllib.error.URLError) as exc:
+            last_error = exc
+            if tmp_path.exists():
+                tmp_path.unlink()
+            if attempt < retries:
+                time.sleep(attempt)
+    if last_error:
+        raise last_error
 
 
 def extract_pdf_text(pdf_path: Path, firstpage_path: Path, fulltext_path: Path) -> None:
