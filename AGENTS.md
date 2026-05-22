@@ -10,7 +10,7 @@ This repository is an agent-operated pipeline for turning daily arXiv Agent/LLM 
 - `scripts/image/`: cover-image request helpers; default flow uses Codex built-in image generation via `generate_codex_cover.py`.
 - `scripts/wechat/`: Bun/TypeScript WeChat publisher and vendored markdown/CDP helpers.
 - `references/workflow.md` and `SKILL.md`: canonical workflow and agent instructions.
-- `assets/`: committed README images. Runtime outputs belong in `runs/papers_YYYYMMDD/`, which is ignored by git.
+- `assets/`: committed README images. Heavy runtime outputs belong in `runs/papers_YYYYMMDD/` and are ignored by git; final WeChat Markdown drafts and `wechat-post-multi.json` may be committed for review/history.
 
 ## Build, Test, and Development Commands
 
@@ -59,7 +59,7 @@ History is minimal, so use concise imperative commits such as `Add Codex cover h
 
 ## Security & Configuration Tips
 
-Do not commit credentials or run outputs. Keep WeChat secrets in `scripts/wechat/.baoyu-skills/.env`. Keep PDFs, generated covers, `reviewed.jsonl`, and WeChat drafts under `runs/`. Before sharing, scan for secrets:
+Do not commit credentials or heavy run outputs. Keep WeChat secrets in `scripts/wechat/.baoyu-skills/.env`. Keep PDFs, generated covers, and `reviewed.jsonl` under `runs/` but out of git. It is OK to commit `wechat-post*.md` and `wechat-post-multi.json` after review. Before sharing, scan for secrets:
 
 ```bash
 rg --hidden --no-ignore "WECHAT_APP_SECRET|sk-" .

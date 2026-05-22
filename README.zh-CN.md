@@ -136,7 +136,7 @@ WECHAT_APP_SECRET=
 
 封面图默认由 Codex agent 的内置图片能力生成，不需要额外图片 API Key。
 
-`.env`、PDF、图片和运行产物都已被 git 忽略。
+`.env`、PDF、图片和较大的运行产物都已被 git 忽略。`runs/` 下最终生成的 WeChat Markdown 草稿和 `wechat-post-multi.json` 可以提交，用于审阅和留档。
 
 <a id="agent-usage"></a>
 
@@ -268,7 +268,7 @@ npx -y bun ./wechat-api.ts ../../runs/papers_20260520/wechat-post.md \
 
 ## 🛡️ 安全说明
 
-仓库不包含真实 token、AppSecret、API key、PDF 或生成后的文章产物。生产凭据请只放在本地 ignored 文件或环境变量中。
+仓库不包含真实 token、AppSecret、API key、PDF、封面图或全文抽取产物。最终 WeChat Markdown 草稿和 `wechat-post-multi.json` 可在审阅后提交。生产凭据请只放在本地 ignored 文件或环境变量中。
 
 发布 fork 前建议运行：
 

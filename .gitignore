@@ -9,10 +9,11 @@ bun.lockb
 scripts/wechat/.baoyu-skills/.env
 scripts/wechat/.baoyu-skills/.env.*
 !scripts/wechat/.baoyu-skills/.env.example
-runs/
+runs/**
+!runs/**/
 out/
 outimage/
-papers_*/
+/papers_*/
 *.pdf
 *.png
 *.jpg
@@ -25,6 +26,6 @@ papers_*/
 *.txt
 *.jsonl
 reviewed.json
-wechat-post*.md
-wechat-post-multi.json
 /.idea/
+!runs/**/wechat-post*.md
+!runs/**/wechat-post-multi.json
