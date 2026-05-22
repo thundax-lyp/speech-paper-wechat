@@ -39,16 +39,33 @@ metadata:
 - 微信发布目录：`$REPO_ROOT/scripts/wechat`
 - 微信凭据：`$REPO_ROOT/scripts/wechat/.baoyu-skills/.env`，不要提交
 
+## 日期选择硬规则
+
+用户说“今天”“每日”“论文速递”或没有显式指定日期时，默认目标日期必须是当前运行日期，不允许因为本地已有旧产物而自动使用最近一期。
+
+执行前必须先确定并记录：
+
+- 当前日期：用运行环境的当前日期，格式为 `YYYY-MM-DD`
+- arXiv 日期标题：把当前日期转换为 recent 页面使用的英文标题，例如 `Fri, 22 May 2026`
+- 输出目录：必须与当前日期一致，例如 `runs/papers_20260522/`
+
+在抓取前必须确认 `cs.AI`、`cs.CL`、`cs.MA` 的 recent 页面是否包含目标 arXiv 日期标题。若目标日期块尚未出现，必须停止并明确告诉用户：`YYYY-MM-DD` 的 arXiv 日期块暂未发布。禁止静默回退到前一天或复用 `runs/papers_YYYYMMDD/` 旧目录；只有用户明确同意“用最近一期/用昨天”后，才可以改用其他日期。
+
+推送前还必须复核 `wechat-post-multi.json`、markdown frontmatter、文章标题和输出目录里的日期都等于目标日期。日期不一致时禁止推送草稿。
+
 ## 固化执行顺序
 
 ### 1) 抓取、过滤、下载
 
 ```bash
 REPO_ROOT="/path/to/speech-paper-wechat"
+TARGET_DATE="2026-05-22"
+ARXIV_DATE_HEADING="Fri, 22 May 2026"
+RUN_DIR="$REPO_ROOT/runs/papers_20260522"
 
 python3 "$REPO_ROOT/scripts/collect_arxiv_recent.py" \
-  --date-heading "Wed, 20 May 2026" \
-  --output "$REPO_ROOT/runs/papers_20260520" \
+  --date-heading "$ARXIV_DATE_HEADING" \
+  --output "$RUN_DIR" \
   --categories cs.AI cs.CL cs.MA \
   --filter-profile agent-llm \
   --download-pdf \
@@ -130,9 +147,9 @@ python3 "$REPO_ROOT/scripts/collect_arxiv_recent.py" \
 
 ```bash
 python3 "$REPO_ROOT/scripts/build_wechat_markdown.py" \
-  --input "$REPO_ROOT/runs/papers_YYYYMMDD/reviewed.jsonl" \
-  --output "$REPO_ROOT/runs/papers_YYYYMMDD/wechat-post.md" \
-  --date YYYY-MM-DD
+  --input "$RUN_DIR/reviewed.jsonl" \
+  --output "$RUN_DIR/wechat-post.md" \
+  --date "$TARGET_DATE"
 ```
 
 输出：
@@ -152,14 +169,14 @@ python3 "$REPO_ROOT/scripts/build_wechat_markdown.py" \
 
 ```bash
 python3 "$REPO_ROOT/scripts/make_cover_prompt.py" \
-  --input "$REPO_ROOT/runs/papers_YYYYMMDD/reviewed.jsonl" \
-  --output "$REPO_ROOT/runs/papers_YYYYMMDD/cover_prompt.txt"
+  --input "$RUN_DIR/reviewed.jsonl" \
+  --output "$RUN_DIR/cover_prompt.txt"
 
 python3 "$REPO_ROOT/scripts/image/generate_codex_cover.py" \
-  --prompt-file "$REPO_ROOT/runs/papers_YYYYMMDD/cover_prompt.txt" \
+  --prompt-file "$RUN_DIR/cover_prompt.txt" \
   -ar 21:9 \
   -s 2K \
-  -o "$REPO_ROOT/runs/papers_YYYYMMDD/cover.png"
+  -o "$RUN_DIR/cover.png"
 ```
 
 然后使用 Codex 内置图片能力生成封面，保存到 `cover.png`。视觉风格：现代 AI research newsletter 封面，体现智能体网络、工具调用、推理路径、记忆检索、多智能体协作和评测仪表盘；不要文字、logo、水印或真实人物。
@@ -168,6 +185,7 @@ python3 "$REPO_ROOT/scripts/image/generate_codex_cover.py" \
 
 推送前必须确认：
 
+- 目标日期、输出目录、markdown 标题、frontmatter 和 `wechat-post-multi.json` 日期完全一致
 - `reviewed.json` 或 `reviewed.jsonl` 中所有保留论文的 `authors_org` 不为空且非占位
 - `wechat-post.md`、`wechat-post-all.md`、`wechat-post-multi.json` 存在
 - `cover.png` 存在且是真实 PNG/JPG
@@ -177,10 +195,10 @@ python3 "$REPO_ROOT/scripts/image/generate_codex_cover.py" \
 
 ```bash
 cd "$REPO_ROOT/scripts/wechat"
-PATH="$HOME/.bun/bin:$PATH" bun ./wechat-api.ts "$REPO_ROOT/runs/papers_YYYYMMDD/wechat-post.md" \
+PATH="$HOME/.bun/bin:$PATH" bun ./wechat-api.ts "$RUN_DIR/wechat-post.md" \
   --author "Thundax" \
-  --cover "$REPO_ROOT/runs/papers_YYYYMMDD/cover.png" \
-  --multi-manifest "$REPO_ROOT/runs/papers_YYYYMMDD/wechat-post-multi.json"
+  --cover "$RUN_DIR/cover.png" \
+  --multi-manifest "$RUN_DIR/wechat-post-multi.json"
 ```
 
 ## 异常处理
