@@ -1,0 +1,13 @@
+{
+  "publish_date": "2026-05-25",
+  "run_dir": "runs/papers_20260525",
+  "arxiv_date_heading": "Mon, 25 May 2026",
+  "source_note": "User requested title as today while treating the batch as 0523 content; data was collected from arXiv recent pages for Mon, 25 May 2026.",
+  "categories": [
+    "cs.AI",
+    "cs.CL",
+    "cs.MA"
+  ],
+  "filter_profile": "agent-llm",
+  "draft_media_id": "yugQBFgvPKeMvWKDV42LT94r4PZ692qVDzuU0czcJZWj0d8_WqarESOTPIhY4vnh"
+}
