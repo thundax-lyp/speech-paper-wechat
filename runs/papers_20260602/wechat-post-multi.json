@@ -1,0 +1,19 @@
+{
+  "date": "2026-06-02",
+  "articles": [
+    {
+      "title": "Agent/LLM论文速递｜2026-06-02｜综合分析版",
+      "path": "/Users/lizixi/workspace/speech-paper-wechat/runs/papers_20260602/wechat-post.md",
+      "kind": "synthesis",
+      "count": 80
+    },
+    {
+      "title": "Agent/LLM论文速递｜2026-06-02｜全量版",
+      "path": "/Users/lizixi/workspace/speech-paper-wechat/runs/papers_20260602/wechat-post-all.md",
+      "kind": "full",
+      "count": 80
+    }
+  ],
+  "featured_count": 8,
+  "full_count": 80
+}
