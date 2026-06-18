@@ -1,0 +1,57 @@
+{
+  "date": "2026-05-28",
+  "articles": [
+    {
+      "title": "Agent/LLM论文速递｜2026-05-28｜精选版",
+      "path": "/Volumes/storage/workspace/speech-paper-wechat/runs/papers_20260528/wechat-post.md",
+      "kind": "featured",
+      "count": 4
+    },
+    {
+      "title": "Agent/LLM论文速递｜2026-05-28｜全量版1/13",
+      "path": "/Volumes/storage/workspace/speech-paper-wechat/runs/papers_20260528/wechat-post-all-full-part01.md",
+      "kind": "full",
+      "count": 20
+    },
+    {
+      "title": "Agent/LLM论文速递｜2026-05-28｜全量版2/13",
+      "path": "/Volumes/storage/workspace/speech-paper-wechat/runs/papers_20260528/wechat-post-all-full-part02.md",
+      "kind": "full",
+      "count": 20
+    },
+    {
+      "title": "Agent/LLM论文速递｜2026-05-28｜全量版3/13",
+      "path": "/Volumes/storage/workspace/speech-paper-wechat/runs/papers_20260528/wechat-post-all-full-part03.md",
+      "kind": "full",
+      "count": 20
+    },
+    {
+      "title": "Agent/LLM论文速递｜2026-05-28｜全量版4/13",
+      "path": "/Volumes/storage/workspace/speech-paper-wechat/runs/papers_20260528/wechat-post-all-full-part04.md",
+      "kind": "full",
+      "count": 20
+    },
+    {
+      "title": "Agent/LLM论文速递｜2026-05-28｜全量版5/13",
+      "path": "/Volumes/storage/workspace/speech-paper-wechat/runs/papers_20260528/wechat-post-all-full-part05.md",
+      "kind": "full",
+      "count": 20
+    },
+    {
+      "title": "Agent/LLM论文速递｜2026-05-28｜全量版6/13",
+      "path": "/Volumes/storage/workspace/speech-paper-wechat/runs/papers_20260528/wechat-post-all-full-part06.md",
+      "kind": "full",
+      "count": 20
+    },
+    {
+      "title": "Agent/LLM论文速递｜2026-05-28｜全量版7/13",
+      "path": "/Volumes/storage/workspace/speech-paper-wechat/runs/papers_20260528/wechat-post-all-full-part07.md",
+      "kind": "full",
+      "count": 20
+    }
+  ],
+  "featured_count": 4,
+  "full_count": 258,
+  "full_parts_total": 13,
+  "draft_batch": "A"
+}
